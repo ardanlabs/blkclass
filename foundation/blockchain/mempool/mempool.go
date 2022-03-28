@@ -63,10 +63,30 @@ func (mp *Mempool) Delete(tx storage.UserTx) error {
 // Copy uses the configured sort strategy to return the next set
 // of transactions for the next block.
 func (mp *Mempool) Copy() []storage.UserTx {
+	mp.mu.RLock()
+	defer mp.mu.RUnlock()
+
 	cpy := []storage.UserTx{}
 	for _, tx := range mp.pool {
 		cpy = append(cpy, tx)
 	}
+	return cpy
+}
+
+// PickBest uses the configured sort strategy to return the next set
+// of transactions for the next block.
+func (mp *Mempool) PickBest(howMany int) []storage.UserTx {
+	mp.mu.RLock()
+	defer mp.mu.RUnlock()
+
+	cpy := []storage.UserTx{}
+	for _, tx := range mp.pool {
+		cpy = append(cpy, tx)
+		if len(cpy) == howMany {
+			break
+		}
+	}
+
 	return cpy
 }
 

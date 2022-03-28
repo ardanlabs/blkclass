@@ -64,10 +64,30 @@ func New(cfg Config) (*State, error) {
 
 // SubmitWalletTransaction accepts a transaction from a wallet for inclusion.
 func (s *State) SubmitWalletTransaction(tx storage.UserTx) error {
-	_, err := s.mempool.Upsert(tx)
+	n, err := s.mempool.Upsert(tx)
 	if err != nil {
 		return err
 	}
+
+	if n >= s.genesis.TransPerBlock {
+		if err := s.MineNextBlock(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// MineNextBlock will perform a block creation.
+func (s *State) MineNextBlock() error {
+	// txs := s.mempool.PickBest(2)
+
+	// CREATE A BLOCK
+	// POW
+	// WRITE TO DISK
+	// UPDATE ACCOUNTS
+
+	// START RELOAD
 
 	return nil
 }
