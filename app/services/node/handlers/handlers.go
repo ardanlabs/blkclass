@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	v1 "github.com/ardanlabs/blockchain/app/services/node/handlers/v1"
 	"github.com/ardanlabs/blockchain/business/web/v1/mid"
 	"github.com/ardanlabs/blockchain/foundation/web"
 	"go.uber.org/zap"
