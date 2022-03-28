@@ -9,3 +9,16 @@ type UserTx struct {
 	Tip   uint   `json:"tip"`   // Tip offered by the sender as an incentive to mine this transaction.
 	Data  []byte `json:"data"`  // Extra data related to the transaction.
 }
+
+// NewUserTx constructs a new user transaction.
+func NewUserTx(nonce uint, from string, to string, value uint, tip uint, data []byte) (UserTx, error) {
+	userTx := UserTx{
+		Nonce: nonce,
+		To:    to,
+		Value: value,
+		Tip:   tip,
+		Data:  data,
+	}
+
+	return userTx, nil
+}

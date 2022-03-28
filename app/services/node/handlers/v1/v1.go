@@ -26,6 +26,7 @@ func PublicRoutes(app *web.App, cfg Config) {
 		State: cfg.State,
 	}
 
+	app.Handle(http.MethodPost, version, "/tx/submit", pbl.SubmitWalletTransaction)
 	app.Handle(http.MethodGet, version, "/genesis", pbl.Genesis)
 	app.Handle(http.MethodGet, version, "/accounts/list", pbl.Accounts)
 }

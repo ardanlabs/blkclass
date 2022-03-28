@@ -3,9 +3,11 @@ package public
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/ardanlabs/blockchain/foundation/blockchain/state"
+	"github.com/ardanlabs/blockchain/foundation/blockchain/storage"
 	"github.com/ardanlabs/blockchain/foundation/web"
 	"go.uber.org/zap"
 )
@@ -14,6 +16,29 @@ import (
 type Handlers struct {
 	Log   *zap.SugaredLogger
 	State *state.State
+}
+
+// SubmitWalletTransaction adds new user transactions to the mempool.
+func (h Handlers) SubmitWalletTransaction(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	v, err := web.GetValues(ctx)
+	if err != nil {
+		return web.NewShutdownError("web value missing from context")
+	}
+
+	var userTX storage.UserTx
+	if err := web.Decode(r, &userTX); err != nil {
+		return fmt.Errorf("unable to decode payload: %w", err)
+	}
+
+	h.Log.Infow("add user tran", "traceid", v.TraceID, "nonce", userTX.Nonce, "from", userTX.From, "value", "to", userTX.To, "value", userTX.Value, "tip", userTX.Tip)
+
+	resp := struct {
+		Status string `json:"status"`
+	}{
+		Status: "WE HAVE THE TRAN",
+	}
+
+	return web.Respond(ctx, w, resp, http.StatusOK)
 }
 
 // Test adds new user transactions to the mempool.
