@@ -1,0 +1,54 @@
+# github.com/ardanlabs/conf v1.5.0
+## explicit; go 1.13
+github.com/ardanlabs/conf
+# github.com/dimfeld/httptreemux/v5 v5.4.0
+## explicit; go 1.9
+github.com/dimfeld/httptreemux/v5
+# github.com/go-playground/locales v0.14.0
+## explicit; go 1.13
+github.com/go-playground/locales
+github.com/go-playground/locales/currency
+github.com/go-playground/locales/en
+# github.com/go-playground/universal-translator v0.18.0
+## explicit; go 1.13
+github.com/go-playground/universal-translator
+# github.com/go-playground/validator/v10 v10.10.1
+## explicit; go 1.13
+github.com/go-playground/validator/v10
+github.com/go-playground/validator/v10/translations/en
+# github.com/google/go-cmp v0.5.7
+## explicit; go 1.11
+# github.com/google/uuid v1.3.0
+## explicit
+github.com/google/uuid
+# github.com/leodido/go-urn v1.2.1
+## explicit; go 1.13
+github.com/leodido/go-urn
+# github.com/stretchr/testify v1.7.1
+## explicit; go 1.13
+# go.uber.org/atomic v1.7.0
+## explicit; go 1.13
+go.uber.org/atomic
+# go.uber.org/multierr v1.6.0
+## explicit; go 1.12
+go.uber.org/multierr
+# go.uber.org/zap v1.21.0
+## explicit; go 1.13
+go.uber.org/zap
+go.uber.org/zap/buffer
+go.uber.org/zap/internal/bufferpool
+go.uber.org/zap/internal/color
+go.uber.org/zap/internal/exit
+go.uber.org/zap/zapcore
+# golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
+## explicit; go 1.17
+golang.org/x/crypto/sha3
+# golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069
+## explicit; go 1.17
+golang.org/x/sys/cpu
+# golang.org/x/text v0.3.7
+## explicit; go 1.17
+golang.org/x/text/internal/language
+golang.org/x/text/internal/language/compact
+golang.org/x/text/internal/tag
+golang.org/x/text/language
