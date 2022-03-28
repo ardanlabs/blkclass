@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/ardanlabs/blockchain/app/services/node/handlers/v1/public"
+	"github.com/ardanlabs/blockchain/foundation/blockchain/state"
 	"github.com/ardanlabs/blockchain/foundation/web"
 	"go.uber.org/zap"
 )
@@ -14,14 +15,17 @@ const version = "v1"
 
 // Config contains all the mandatory systems required by handlers.
 type Config struct {
-	Log *zap.SugaredLogger
+	Log   *zap.SugaredLogger
+	State *state.State
 }
 
 // PublicRoutes binds all the version 1 public routes.
 func PublicRoutes(app *web.App, cfg Config) {
 	pbl := public.Handlers{
-		Log: cfg.Log,
+		Log:   cfg.Log,
+		State: cfg.State,
 	}
 
 	app.Handle(http.MethodGet, version, "/genesis", pbl.Genesis)
+	app.Handle(http.MethodGet, version, "/accounts/list", pbl.Accounts)
 }

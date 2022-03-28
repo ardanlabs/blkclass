@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/ardanlabs/blockchain/app/services/node/handlers"
+	"github.com/ardanlabs/blockchain/foundation/blockchain/state"
 	"github.com/ardanlabs/blockchain/foundation/logger"
 	"github.com/ardanlabs/conf/v3"
 	"go.uber.org/zap"
@@ -98,6 +99,18 @@ func run(log *zap.SugaredLogger) error {
 	log.Infow("startup", "config", out)
 
 	// =========================================================================
+	// Blockchain Support
+
+	state, err := state.New(state.Config{
+		MinerAccount: cfg.Node.MinerName,
+		Host:         cfg.Web.PrivateHost,
+		DBPath:       cfg.Node.DBPath,
+	})
+	if err != nil {
+		return err
+	}
+
+	// =========================================================================
 	// Service Start/Stop Support
 
 	// Make a channel to listen for an interrupt or terminate signal from the OS.
@@ -118,6 +131,7 @@ func run(log *zap.SugaredLogger) error {
 	publicMux := handlers.PublicMux(handlers.MuxConfig{
 		Shutdown: shutdown,
 		Log:      log,
+		State:    state,
 	})
 
 	// Construct a server to service the requests against the mux.
