@@ -3,6 +3,8 @@ package state
 import (
 	"github.com/ardanlabs/blockchain/foundation/blockchain/accounts"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/genesis"
+	"github.com/ardanlabs/blockchain/foundation/blockchain/mempool"
+	"github.com/ardanlabs/blockchain/foundation/blockchain/storage"
 )
 
 // Config represents the configuration required to start
@@ -20,6 +22,7 @@ type State struct {
 	dbPath       string
 
 	genesis  genesis.Genesis
+	mempool  *mempool.Mempool
 	accounts *accounts.Accounts
 }
 
@@ -37,6 +40,12 @@ func New(cfg Config) (*State, error) {
 	// the blockchain.
 	accounts := accounts.New(genesis)
 
+	// Construct a mempool with the specified sort strategy.
+	mempool, err := mempool.New()
+	if err != nil {
+		return nil, err
+	}
+
 	// Create the State to provide support for managing the blockchain.
 	state := State{
 		minerAccount: cfg.MinerAccount,
@@ -44,6 +53,7 @@ func New(cfg Config) (*State, error) {
 		dbPath:       cfg.DBPath,
 
 		genesis:  genesis,
+		mempool:  mempool,
 		accounts: accounts,
 	}
 
@@ -51,6 +61,23 @@ func New(cfg Config) (*State, error) {
 }
 
 // =============================================================================
+
+// SubmitWalletTransaction accepts a transaction from a wallet for inclusion.
+func (s *State) SubmitWalletTransaction(tx storage.UserTx) error {
+	_, err := s.mempool.Upsert(tx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// =============================================================================
+
+// RetrieveMempool returns a copy of the mempool.
+func (s *State) RetrieveMempool() []storage.UserTx {
+	return s.mempool.Copy()
+}
 
 // RetrieveGenesis returns a copy of the genesis information.
 func (s *State) RetrieveGenesis() genesis.Genesis {

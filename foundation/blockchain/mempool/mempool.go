@@ -60,6 +60,16 @@ func (mp *Mempool) Delete(tx storage.UserTx) error {
 	return nil
 }
 
+// Copy uses the configured sort strategy to return the next set
+// of transactions for the next block.
+func (mp *Mempool) Copy() []storage.UserTx {
+	cpy := []storage.UserTx{}
+	for _, tx := range mp.pool {
+		cpy = append(cpy, tx)
+	}
+	return cpy
+}
+
 // =============================================================================
 
 // mapKey is used to generate the map key.

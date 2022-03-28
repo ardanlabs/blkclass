@@ -31,6 +31,7 @@ func (h Handlers) SubmitWalletTransaction(ctx context.Context, w http.ResponseWr
 	}
 
 	h.Log.Infow("add user tran", "traceid", v.TraceID, "nonce", userTX.Nonce, "from", userTX.From, "value", "to", userTX.To, "value", userTX.Value, "tip", userTX.Tip)
+	h.State.SubmitWalletTransaction(userTX)
 
 	resp := struct {
 		Status string `json:"status"`
@@ -39,6 +40,12 @@ func (h Handlers) SubmitWalletTransaction(ctx context.Context, w http.ResponseWr
 	}
 
 	return web.Respond(ctx, w, resp, http.StatusOK)
+}
+
+// Mempool returns the set of uncommitted transactions.
+func (h Handlers) Mempool(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	mempool := h.State.RetrieveMempool()
+	return web.Respond(ctx, w, mempool, http.StatusOK)
 }
 
 // Test adds new user transactions to the mempool.
