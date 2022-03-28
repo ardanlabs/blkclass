@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-# curl -il -X GET  http://localhost:8080/v1/test
+# curl -il -X GET  http://localhost:8080/v1/genesis
 
 # ==============================================================================
 # Local support

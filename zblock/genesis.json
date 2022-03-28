@@ -1,0 +1,12 @@
+{
+    "date": "2021-12-17T00:00:00.000000000Z",
+    "chain_id": "the-ardan-blockchain",
+    "difficulty": 6,
+    "transactions_per_block": 2,
+	"mining_reward": 700,
+	"gas_price": 15,
+    "balances": {
+        "0xF01813E4B85e178A83e29B8E7bF26BD830a25f32": 1000000,
+        "0xdd6B972ffcc631a62CAE1BB9d80b7ff429c8ebA4": 1000000
+    }
+}
