@@ -22,6 +22,9 @@ up2:
 down:
 	kill -INT $(shell ps | grep "main -race" | grep -v grep | sed -n 1,1p | cut -c1-5)
 
+clear-db:
+	cat /dev/null > zblock/blocks.db
+
 # ==============================================================================
 # Modules support
 
