@@ -162,7 +162,7 @@ func (s *State) MineNextBlock() error {
 	}
 
 	// Save this as the latest block.
-	s.latestBlock = block
+	s.latestBlock = blockFS.Block
 
 	return nil
 }
