@@ -2,6 +2,7 @@ package storage
 
 import (
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -64,6 +65,21 @@ type SignedTx struct {
 	V *big.Int `json:"v"` // Recovery identifier, either 29 or 30 with ardanID.
 	R *big.Int `json:"r"` // First coordinate of the ECDSA signature.
 	S *big.Int `json:"s"` // Second coordinate of the ECDSA signature.
+}
+
+// Validate verifies the transaction has a proper signature that conforms to our
+// standards and is associated with the data claimed to be signed. It also
+// checks the format of the to account.
+func (tx SignedTx) Validate() error {
+	if err := signature.VerifySignature(tx.UserTx, tx.V, tx.R, tx.S); err != nil {
+		return err
+	}
+
+	if !tx.To.IsAccount() {
+		return errors.New("invalid account for to account")
+	}
+
+	return nil
 }
 
 // FromAccount extracts the account that signed the transaction.

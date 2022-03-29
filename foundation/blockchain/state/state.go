@@ -115,8 +115,12 @@ func New(cfg Config) (*State, error) {
 // =============================================================================
 
 // SubmitWalletTransaction accepts a transaction from a wallet for inclusion.
-func (s *State) SubmitWalletTransaction(tx storage.SignedTx) error {
-	n, err := s.mempool.Upsert(tx)
+func (s *State) SubmitWalletTransaction(signedTx storage.SignedTx) error {
+	if err := s.validateTransaction(signedTx); err != nil {
+		return err
+	}
+
+	n, err := s.mempool.Upsert(signedTx)
 	if err != nil {
 		return err
 	}
@@ -184,4 +188,16 @@ func (s *State) RetrieveGenesis() genesis.Genesis {
 // RetrieveAccounts returns a copy of the set of account information.
 func (s *State) RetrieveAccounts() map[storage.Account]accounts.Info {
 	return s.accounts.Copy()
+}
+
+// =============================================================================
+
+// validateTransaction takes the signed transaction and validates it has
+// a proper signature and other aspects of the data.
+func (s *State) validateTransaction(signedTx storage.SignedTx) error {
+	if err := signedTx.Validate(); err != nil {
+		return err
+	}
+
+	return nil
 }
