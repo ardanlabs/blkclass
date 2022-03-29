@@ -17,14 +17,14 @@ type Info struct {
 // the blockchain.
 type Accounts struct {
 	genesis genesis.Genesis
-	info    map[string]Info
+	info    map[storage.Account]Info
 	mu      sync.RWMutex
 }
 
 func New(genesis genesis.Genesis) *Accounts {
 	accounts := Accounts{
 		genesis: genesis,
-		info:    make(map[string]Info),
+		info:    make(map[storage.Account]Info),
 	}
 
 	for account, balance := range genesis.Balances {
@@ -35,11 +35,11 @@ func New(genesis genesis.Genesis) *Accounts {
 }
 
 // Copy makes a copy of the current information for all accounts.
-func (act *Accounts) Copy() map[string]Info {
+func (act *Accounts) Copy() map[storage.Account]Info {
 	act.mu.RLock()
 	defer act.mu.RUnlock()
 
-	accounts := make(map[string]Info)
+	accounts := make(map[storage.Account]Info)
 	for account, info := range act.info {
 		accounts[account] = info
 	}
@@ -47,7 +47,7 @@ func (act *Accounts) Copy() map[string]Info {
 }
 
 // ApplyMiningReward gives the specififed account the mining reward.
-func (act *Accounts) ApplyMiningReward(minerAccount string) {
+func (act *Accounts) ApplyMiningReward(minerAccount storage.Account) {
 	act.mu.Lock()
 	defer act.mu.Unlock()
 
@@ -59,35 +59,39 @@ func (act *Accounts) ApplyMiningReward(minerAccount string) {
 
 // ApplyTransaction performs the business logic for applying a transaction
 // to the accounts information.
-func (act *Accounts) ApplyTransaction(minerAccount string, tx storage.UserTx) error {
+func (act *Accounts) ApplyTransaction(minerAccount storage.Account, tx storage.SignedTx) error {
+	from, err := tx.FromAccount()
+	if err != nil {
+		return fmt.Errorf("invalid signature, %s", err)
+	}
+
 	act.mu.Lock()
 	defer act.mu.Unlock()
+	{
+		if from == tx.To {
+			return fmt.Errorf("invalid transaction, sending money to yourself, from %s, to %s", from, tx.To)
+		}
 
-	from := tx.From
+		fromInfo := act.info[from]
+		fee := /*tx.Gas*/ +tx.Tip
 
-	if from == tx.To {
-		return fmt.Errorf("invalid transaction, sending money to yourself, from %s, to %s", from, tx.To)
+		if tx.Value+fee > act.info[from].Balance {
+			return fmt.Errorf("%s has an insufficient balance", from)
+		}
+
+		toInfo := act.info[tx.To]
+		minerInfo := act.info[minerAccount]
+
+		fromInfo.Balance -= tx.Value
+		toInfo.Balance += tx.Value
+
+		minerInfo.Balance += fee
+		fromInfo.Balance -= fee
+
+		act.info[from] = fromInfo
+		act.info[tx.To] = toInfo
+		act.info[minerAccount] = minerInfo
 	}
-
-	fromInfo := act.info[from]
-	fee := /*tx.Gas*/ +tx.Tip
-
-	if tx.Value+fee > act.info[from].Balance {
-		return fmt.Errorf("%s has an insufficient balance", from)
-	}
-
-	toInfo := act.info[tx.To]
-	minerInfo := act.info[minerAccount]
-
-	fromInfo.Balance -= tx.Value
-	toInfo.Balance += tx.Value
-
-	minerInfo.Balance += fee
-	fromInfo.Balance -= fee
-
-	act.info[from] = fromInfo
-	act.info[tx.To] = toInfo
-	act.info[minerAccount] = minerInfo
 
 	return nil
 }

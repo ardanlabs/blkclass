@@ -1,9 +1,29 @@
 # github.com/ardanlabs/conf/v3 v3.1.2
 ## explicit; go 1.13
 github.com/ardanlabs/conf/v3
+# github.com/btcsuite/btcd/btcec/v2 v2.1.2
+## explicit; go 1.17
+github.com/btcsuite/btcd/btcec/v2
+github.com/btcsuite/btcd/btcec/v2/ecdsa
+# github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1
+## explicit; go 1.16
+github.com/decred/dcrd/dcrec/secp256k1/v4
+github.com/decred/dcrd/dcrec/secp256k1/v4/ecdsa
 # github.com/dimfeld/httptreemux/v5 v5.4.0
 ## explicit; go 1.9
 github.com/dimfeld/httptreemux/v5
+# github.com/ethereum/go-ethereum v1.10.17
+## explicit; go 1.15
+github.com/ethereum/go-ethereum/common
+github.com/ethereum/go-ethereum/common/hexutil
+github.com/ethereum/go-ethereum/common/math
+github.com/ethereum/go-ethereum/crypto
+github.com/ethereum/go-ethereum/crypto/secp256k1
+github.com/ethereum/go-ethereum/crypto/secp256k1/libsecp256k1/include
+github.com/ethereum/go-ethereum/crypto/secp256k1/libsecp256k1/src
+github.com/ethereum/go-ethereum/crypto/secp256k1/libsecp256k1/src/modules/recovery
+github.com/ethereum/go-ethereum/rlp
+github.com/ethereum/go-ethereum/rlp/internal/rlpstruct
 # github.com/go-playground/locales v0.14.0
 ## explicit; go 1.13
 github.com/go-playground/locales
@@ -43,7 +63,7 @@ go.uber.org/zap/zapcore
 # golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
 ## explicit; go 1.17
 golang.org/x/crypto/sha3
-# golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069
+# golang.org/x/sys v0.0.0-20210816183151-1e6c022a8912
 ## explicit; go 1.17
 golang.org/x/sys/cpu
 # golang.org/x/text v0.3.7

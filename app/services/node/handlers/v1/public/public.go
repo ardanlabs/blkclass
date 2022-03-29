@@ -25,13 +25,18 @@ func (h Handlers) SubmitWalletTransaction(ctx context.Context, w http.ResponseWr
 		return web.NewShutdownError("web value missing from context")
 	}
 
-	var userTX storage.UserTx
-	if err := web.Decode(r, &userTX); err != nil {
+	var signedTx storage.SignedTx
+	if err := web.Decode(r, &signedTx); err != nil {
 		return fmt.Errorf("unable to decode payload: %w", err)
 	}
 
-	h.Log.Infow("add user tran", "traceid", v.TraceID, "nonce", userTX.Nonce, "from", userTX.From, "value", userTX.Value, "to", userTX.To, "value", userTX.Value, "tip", userTX.Tip)
-	if err := h.State.SubmitWalletTransaction(userTX); err != nil {
+	from, err := signedTx.FromAccount()
+	if err != nil {
+		return fmt.Errorf("unable to get from account address: %w", err)
+	}
+
+	h.Log.Infow("add user tran", "traceid", v.TraceID, "nonce", signedTx.Nonce, "from", from, "value", signedTx.Value, "to", signedTx.To, "value", signedTx.Value, "tip", signedTx.Tip)
+	if err := h.State.SubmitWalletTransaction(signedTx); err != nil {
 		return err
 	}
 
