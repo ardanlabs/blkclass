@@ -1,6 +1,8 @@
 package state
 
 import (
+	"context"
+
 	"github.com/ardanlabs/blockchain/foundation/blockchain/accounts"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/genesis"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/mempool"
@@ -125,9 +127,11 @@ func (s *State) MineNextBlock() error {
 	trans := s.mempool.PickBest(2)
 	nb := storage.NewBlock(s.minerAccount, s.genesis.Difficulty, s.genesis.TransPerBlock, trans)
 
-	blockFS := storage.BlockFS{
-		Hash:  "my hash",
-		Block: nb,
+	s.evHandler("worker: MineNextBlock: MINING: find hash")
+
+	blockFS, _, err := performPOW(context.Background(), s.genesis.Difficulty, nb, s.evHandler)
+	if err != nil {
+		return err
 	}
 
 	s.evHandler("worker: MineNextBlock: MINING: write block to disk")
@@ -148,9 +152,6 @@ func (s *State) MineNextBlock() error {
 		s.evHandler("worker: MineNextBlock: MINING: REMOVE: %s:%d", tx.From, tx.Nonce)
 		s.mempool.Delete(tx)
 	}
-
-	//    ------- POW
-	// START RELOAD
 
 	return nil
 }
