@@ -30,7 +30,7 @@ func (h Handlers) SubmitWalletTransaction(ctx context.Context, w http.ResponseWr
 		return fmt.Errorf("unable to decode payload: %w", err)
 	}
 
-	h.Log.Infow("add user tran", "traceid", v.TraceID, "nonce", userTX.Nonce, "from", userTX.From, "value", "to", userTX.To, "value", userTX.Value, "tip", userTX.Tip)
+	h.Log.Infow("add user tran", "traceid", v.TraceID, "nonce", userTX.Nonce, "from", userTX.From, "value", userTX.Value, "to", userTX.To, "value", userTX.Value, "tip", userTX.Tip)
 	if err := h.State.SubmitWalletTransaction(userTX); err != nil {
 		return err
 	}
