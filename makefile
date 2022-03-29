@@ -3,7 +3,11 @@ SHELL := /bin/bash
 # curl -il -X GET http://localhost:8080/v1/genesis
 # curl -il -X GET http://localhost:8080/v1/accounts/list
 # curl -il -X GET http://localhost:8080/v1/tx/uncommitted/list
-# curl -il -X POST http://localhost:8080/v1/tx/submit -d '{"nonce": 1, "from": "bill", "to": "maddie", "value": 300, "tip": 30}'
+
+# curl -il -X POST http://localhost:8080/v1/tx/submit -d '{"nonce": 1, "from": "bill", "to": "maddie", "value": 300, "tip": 10}'
+# curl -il -X POST http://localhost:8080/v1/tx/submit -d '{"nonce": 2, "from": "bill", "to": "betty", "value": 200, "tip": 20}'
+# curl -il -X POST http://localhost:8080/v1/tx/submit -d '{"nonce": 3, "from": "bill", "to": "carlos", "value": 150, "tip": 30}'
+# curl -il -X POST http://localhost:8080/v1/tx/submit -d '{"nonce": 4, "from": "bill", "to": "ed", "value": 400, "tip": 40}'
 
 
 # ==============================================================================
