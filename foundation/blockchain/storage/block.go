@@ -25,12 +25,18 @@ type Block struct {
 }
 
 // NewBlock constructs a new BlockFS for persisting.
-func NewBlock(minerAccount string, difficulty int, transPerBlock int, trans []UserTx) Block {
+func NewBlock(minerAccount string, difficulty int, transPerBlock int, parentBlock Block, trans []UserTx) Block {
+	parentHash := signature.ZeroHash
+	if parentBlock.Header.Number > 0 {
+		parentHash = parentBlock.Hash()
+	}
+
 	return Block{
 		Header: BlockHeader{
+			ParentHash:   parentHash,
 			MinerAccount: minerAccount,
 			Difficulty:   difficulty,
-			Number:       1,
+			Number:       parentBlock.Header.Number + 1,
 			TimeStamp:    uint64(time.Now().UTC().Unix()),
 		},
 		Transactions: trans,

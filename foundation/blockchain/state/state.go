@@ -30,10 +30,11 @@ type State struct {
 
 	evHandler EventHandler
 
-	genesis  genesis.Genesis
-	storage  *storage.Storage
-	mempool  *mempool.Mempool
-	accounts *accounts.Accounts
+	genesis     genesis.Genesis
+	storage     *storage.Storage
+	mempool     *mempool.Mempool
+	accounts    *accounts.Accounts
+	latestBlock storage.Block
 }
 
 // New constructs a new blockchain for data management.
@@ -57,6 +58,12 @@ func New(cfg Config) (*State, error) {
 	blocks, err := strg.ReadAllBlocks()
 	if err != nil {
 		return nil, err
+	}
+
+	// Keep the latest block from the blockchain.
+	var latestBlock storage.Block
+	if len(blocks) > 0 {
+		latestBlock = blocks[len(blocks)-1]
 	}
 
 	// Create a new accounts value to manage accounts who transact on
@@ -95,10 +102,11 @@ func New(cfg Config) (*State, error) {
 		dbPath:       cfg.DBPath,
 		evHandler:    ev,
 
-		genesis:  genesis,
-		storage:  strg,
-		mempool:  mempool,
-		accounts: accounts,
+		genesis:     genesis,
+		storage:     strg,
+		mempool:     mempool,
+		accounts:    accounts,
+		latestBlock: latestBlock,
 	}
 
 	return &state, nil
@@ -125,11 +133,11 @@ func (s *State) SubmitWalletTransaction(tx storage.UserTx) error {
 // MineNextBlock will perform a block creation.
 func (s *State) MineNextBlock() error {
 	trans := s.mempool.PickBest(2)
-	nb := storage.NewBlock(s.minerAccount, s.genesis.Difficulty, s.genesis.TransPerBlock, trans)
+	block := storage.NewBlock(s.minerAccount, s.genesis.Difficulty, s.genesis.TransPerBlock, s.latestBlock, trans)
 
 	s.evHandler("worker: MineNextBlock: MINING: find hash")
 
-	blockFS, _, err := performPOW(context.Background(), s.genesis.Difficulty, nb, s.evHandler)
+	blockFS, _, err := performPOW(context.Background(), s.genesis.Difficulty, block, s.evHandler)
 	if err != nil {
 		return err
 	}
@@ -152,6 +160,9 @@ func (s *State) MineNextBlock() error {
 		s.evHandler("worker: MineNextBlock: MINING: REMOVE: %s:%d", tx.From, tx.Nonce)
 		s.mempool.Delete(tx)
 	}
+
+	// Save this as the latest block.
+	s.latestBlock = block
 
 	return nil
 }
