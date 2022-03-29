@@ -1,5 +1,7 @@
 package storage
 
+import "time"
+
 // BlockHeader represents common information required for each block.
 type BlockHeader struct {
 	ParentHash   string `json:"parent_hash"`   // Hash of the previous block in the chain.
@@ -16,4 +18,24 @@ type BlockHeader struct {
 type Block struct {
 	Header       BlockHeader `json:"header"`
 	Transactions []UserTx    `json:"txs"`
+}
+
+// NewBlock constructs a new BlockFS for persisting.
+func NewBlock(minerAccount string, difficulty int, transPerBlock int, trans []UserTx) Block {
+	return Block{
+		Header: BlockHeader{
+			MinerAccount: minerAccount,
+			Difficulty:   difficulty,
+			TimeStamp:    uint64(time.Now().UTC().Unix()),
+		},
+		Transactions: trans,
+	}
+}
+
+// =============================================================================
+
+// BlockFS represents what is written to the DB file.
+type BlockFS struct {
+	Hash  string
+	Block Block
 }
