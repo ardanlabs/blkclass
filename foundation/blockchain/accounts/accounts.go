@@ -85,8 +85,6 @@ func (act *Accounts) ApplyTransaction(minerAccount string, tx storage.UserTx) er
 	minerInfo.Balance += fee
 	fromInfo.Balance -= fee
 
-	fromInfo.Nonce = tx.Nonce
-
 	act.info[from] = fromInfo
 	act.info[tx.To] = toInfo
 	act.info[minerAccount] = minerInfo
