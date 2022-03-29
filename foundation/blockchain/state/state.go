@@ -120,7 +120,7 @@ func (s *State) MineNextBlock() error {
 	s.evHandler("worker: MineNextBlock: MINING: remove trans from mempool")
 
 	for _, tx := range trans {
-		s.evHandler("worker: MineNextBlock: MINING: REMOVE: %s:%s", tx.From, tx.Nonce)
+		s.evHandler("worker: MineNextBlock: MINING: REMOVE: %s:%d", tx.From, tx.Nonce)
 		s.mempool.Delete(tx)
 	}
 
