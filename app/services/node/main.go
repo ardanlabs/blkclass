@@ -12,8 +12,10 @@ import (
 
 	"github.com/ardanlabs/blockchain/app/services/node/handlers"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/state"
+	"github.com/ardanlabs/blockchain/foundation/blockchain/storage"
 	"github.com/ardanlabs/blockchain/foundation/logger"
 	"github.com/ardanlabs/conf/v3"
+	"github.com/ethereum/go-ethereum/crypto"
 	"go.uber.org/zap"
 )
 
@@ -101,13 +103,21 @@ func run(log *zap.SugaredLogger) error {
 	// =========================================================================
 	// Blockchain Support
 
+	path := fmt.Sprintf("%s%s.ecdsa", cfg.NameService.Folder, cfg.Node.MinerName)
+	privateKey, err := crypto.LoadECDSA(path)
+	if err != nil {
+		return fmt.Errorf("unable to load private key for node: %w", err)
+	}
+
+	account := storage.PublicKeyToAccount(privateKey.PublicKey)
+
 	ev := func(v string, args ...interface{}) {
 		s := fmt.Sprintf(v, args...)
 		log.Infow(s, "traceid", "00000000-0000-0000-0000-000000000000")
 	}
 
 	state, err := state.New(state.Config{
-		MinerAccount: cfg.Node.MinerName,
+		MinerAccount: account,
 		Host:         cfg.Web.PrivateHost,
 		DBPath:       cfg.Node.DBPath,
 		EvHandler:    ev,
