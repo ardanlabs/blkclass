@@ -119,13 +119,17 @@ func (s *State) MineNextBlock() error {
 
 	s.evHandler("worker: MineNextBlock: MINING: remove trans from mempool")
 
+	s.accounts.ApplyMiningReward(s.minerAccount)
+
 	for _, tx := range trans {
+		s.evHandler("worker: MineNextBlock: MINING: UPDATE ACCOUNTS: %s:%d", tx.From, tx.Nonce)
+		s.accounts.ApplyTransaction(s.minerAccount, tx)
+
 		s.evHandler("worker: MineNextBlock: MINING: REMOVE: %s:%d", tx.From, tx.Nonce)
 		s.mempool.Delete(tx)
 	}
 
 	//    ------- POW
-	// UPDATE ACCOUNTS
 	// START RELOAD
 
 	return nil
