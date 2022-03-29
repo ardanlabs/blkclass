@@ -50,9 +50,28 @@ func New(cfg Config) (*State, error) {
 		return nil, err
 	}
 
+	// Load all existing blocks from storage into memory for processing. This
+	// won't work in a system like Ethereum.
+	blocks, err := strg.ReadAllBlocks()
+	if err != nil {
+		return nil, err
+	}
+
 	// Create a new accounts value to manage accounts who transact on
 	// the blockchain.
 	accounts := accounts.New(genesis)
+
+	// Process the blocks and transactions for each account.
+	for _, block := range blocks {
+		for _, tx := range block.Transactions {
+
+			// Apply the balance changes based for this transaction.
+			accounts.ApplyTransaction(block.Header.MinerAccount, tx)
+		}
+
+		// Apply the mining reward for this block.
+		accounts.ApplyMiningReward(block.Header.MinerAccount)
+	}
 
 	// Construct a mempool with the specified sort strategy.
 	mempool, err := mempool.New()
@@ -105,6 +124,7 @@ func (s *State) SubmitWalletTransaction(tx storage.UserTx) error {
 func (s *State) MineNextBlock() error {
 	trans := s.mempool.PickBest(2)
 	nb := storage.NewBlock(s.minerAccount, s.genesis.Difficulty, s.genesis.TransPerBlock, trans)
+
 	blockFS := storage.BlockFS{
 		Hash:  "my hash",
 		Block: nb,
