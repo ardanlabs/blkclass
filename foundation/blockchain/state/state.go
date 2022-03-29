@@ -7,12 +7,17 @@ import (
 	"github.com/ardanlabs/blockchain/foundation/blockchain/storage"
 )
 
+// EventHandler defines a function that is called when events
+// occur in the processing of persisting blocks.
+type EventHandler func(v string, args ...interface{})
+
 // Config represents the configuration required to start
 // the blockchain node.
 type Config struct {
 	MinerAccount string
 	Host         string
 	DBPath       string
+	EvHandler    EventHandler
 }
 
 // State manages the blockchain database.
@@ -20,6 +25,8 @@ type State struct {
 	minerAccount string
 	host         string
 	dbPath       string
+
+	evHandler EventHandler
 
 	genesis  genesis.Genesis
 	storage  *storage.Storage
@@ -53,11 +60,19 @@ func New(cfg Config) (*State, error) {
 		return nil, err
 	}
 
+	// Build a safe event handler function for use.
+	ev := func(v string, args ...interface{}) {
+		if cfg.EvHandler != nil {
+			cfg.EvHandler(v, args...)
+		}
+	}
+
 	// Create the State to provide support for managing the blockchain.
 	state := State{
 		minerAccount: cfg.MinerAccount,
 		host:         cfg.Host,
 		dbPath:       cfg.DBPath,
+		evHandler:    ev,
 
 		genesis:  genesis,
 		storage:  strg,
@@ -95,12 +110,17 @@ func (s *State) MineNextBlock() error {
 		Block: nb,
 	}
 
+	s.evHandler("worker: MineNextBlock: MINING: write block to disk")
+
 	// Write the new block to the chain on disk.
 	if err := s.storage.Write(blockFS); err != nil {
 		return err
 	}
 
+	s.evHandler("worker: MineNextBlock: MINING: remove trans from mempool")
+
 	for _, tx := range trans {
+		s.evHandler("worker: MineNextBlock: MINING: REMOVE: %s:%s", tx.From, tx.Nonce)
 		s.mempool.Delete(tx)
 	}
 

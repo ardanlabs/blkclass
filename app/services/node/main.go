@@ -101,10 +101,16 @@ func run(log *zap.SugaredLogger) error {
 	// =========================================================================
 	// Blockchain Support
 
+	ev := func(v string, args ...interface{}) {
+		s := fmt.Sprintf(v, args...)
+		log.Infow(s, "traceid", "00000000-0000-0000-0000-000000000000")
+	}
+
 	state, err := state.New(state.Config{
 		MinerAccount: cfg.Node.MinerName,
 		Host:         cfg.Web.PrivateHost,
 		DBPath:       cfg.Node.DBPath,
+		EvHandler:    ev,
 	})
 	if err != nil {
 		return err
