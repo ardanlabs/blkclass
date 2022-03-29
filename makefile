@@ -25,6 +25,9 @@ down:
 clear-db:
 	cat /dev/null > zblock/blocks.db
 
+admin:
+	go run app/wallet/cli/main.go	
+
 # ==============================================================================
 # Modules support
 
