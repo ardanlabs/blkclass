@@ -30,6 +30,7 @@ func NewBlock(minerAccount string, difficulty int, transPerBlock int, trans []Us
 		Header: BlockHeader{
 			MinerAccount: minerAccount,
 			Difficulty:   difficulty,
+			Number:       1,
 			TimeStamp:    uint64(time.Now().UTC().Unix()),
 		},
 		Transactions: trans,
