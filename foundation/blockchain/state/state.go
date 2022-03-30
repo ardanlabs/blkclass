@@ -188,7 +188,7 @@ func (s *State) MineNewBlock(ctx context.Context) (storage.Block, time.Duration,
 		}
 
 		// Update the total gas and tip fees.
-		// nb.Header.TotalGas += tx.Gas
+		nb.Header.TotalGas += tx.Gas
 		nb.Header.TotalTip += tx.Tip
 	}
 
