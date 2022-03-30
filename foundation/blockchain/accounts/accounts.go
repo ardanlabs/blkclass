@@ -34,26 +34,6 @@ func New(genesis genesis.Genesis) *Accounts {
 	return &accounts
 }
 
-// Replace updates the accounts based on the specified accounts.
-func (act *Accounts) Replace(accounts *Accounts) {
-	act.mu.Lock()
-	defer act.mu.Unlock()
-
-	act.info = accounts.info
-}
-
-// Clone makes a copy of the current accounts.
-func (act *Accounts) Clone() *Accounts {
-	act.mu.RLock()
-	defer act.mu.RUnlock()
-
-	accounts := New(act.genesis)
-	for account, value := range act.info {
-		accounts.info[account] = value
-	}
-	return accounts
-}
-
 // Copy makes a copy of the current information for all accounts.
 func (act *Accounts) Copy() map[storage.Account]Info {
 	act.mu.RLock()
