@@ -9,14 +9,14 @@ import (
 
 // Mempool represents a cache of transactions organized by account:nonce.
 type Mempool struct {
-	pool map[string]storage.SignedTx
+	pool map[string]storage.BlockTx
 	mu   sync.RWMutex
 }
 
 // New constructs a new mempool with specified sort strategy.
 func New() (*Mempool, error) {
 	mp := Mempool{
-		pool: make(map[string]storage.SignedTx),
+		pool: make(map[string]storage.BlockTx),
 	}
 
 	return &mp, nil
@@ -31,7 +31,7 @@ func (mp *Mempool) Count() int {
 }
 
 // Upsert adds or replaces a transaction from the mempool.
-func (mp *Mempool) Upsert(tx storage.SignedTx) (int, error) {
+func (mp *Mempool) Upsert(tx storage.BlockTx) (int, error) {
 	mp.mu.Lock()
 	defer mp.mu.Unlock()
 
@@ -46,7 +46,7 @@ func (mp *Mempool) Upsert(tx storage.SignedTx) (int, error) {
 }
 
 // Delete removed a transaction from the mempool.
-func (mp *Mempool) Delete(tx storage.SignedTx) error {
+func (mp *Mempool) Delete(tx storage.BlockTx) error {
 	mp.mu.Lock()
 	defer mp.mu.Unlock()
 
@@ -62,11 +62,11 @@ func (mp *Mempool) Delete(tx storage.SignedTx) error {
 
 // Copy uses the configured sort strategy to return the next set
 // of transactions for the next block.
-func (mp *Mempool) Copy() []storage.SignedTx {
+func (mp *Mempool) Copy() []storage.BlockTx {
 	mp.mu.RLock()
 	defer mp.mu.RUnlock()
 
-	cpy := []storage.SignedTx{}
+	cpy := []storage.BlockTx{}
 	for _, tx := range mp.pool {
 		cpy = append(cpy, tx)
 	}
@@ -75,11 +75,11 @@ func (mp *Mempool) Copy() []storage.SignedTx {
 
 // PickBest uses the configured sort strategy to return the next set
 // of transactions for the next block.
-func (mp *Mempool) PickBest(howMany int) []storage.SignedTx {
+func (mp *Mempool) PickBest(howMany int) []storage.BlockTx {
 	mp.mu.RLock()
 	defer mp.mu.RUnlock()
 
-	cpy := []storage.SignedTx{}
+	cpy := []storage.BlockTx{}
 	for _, tx := range mp.pool {
 		cpy = append(cpy, tx)
 		if len(cpy) == howMany {
@@ -93,7 +93,7 @@ func (mp *Mempool) PickBest(howMany int) []storage.SignedTx {
 // =============================================================================
 
 // mapKey is used to generate the map key.
-func mapKey(tx storage.SignedTx) (string, error) {
+func mapKey(tx storage.BlockTx) (string, error) {
 	account, err := tx.FromAccount()
 	if err != nil {
 		return "", err

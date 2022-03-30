@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"time"
 
 	"github.com/ardanlabs/blockchain/foundation/blockchain/signature"
 )
@@ -101,4 +102,22 @@ func (tx SignedTx) String() string {
 	}
 
 	return fmt.Sprintf("%s:%d", from, tx.Nonce)
+}
+
+// =============================================================================
+
+// BlockTx represents the transaction recorded inside the blockchain.
+type BlockTx struct {
+	SignedTx
+	TimeStamp uint64 `json:"timestamp"` // The time the transaction was received.
+	Gas       uint   `json:"gas"`       // Gas fee to recover computation costs paid by the sender.
+}
+
+// NewBlockTx constructs a new block transaction.
+func NewBlockTx(signedTx SignedTx, gas uint) BlockTx {
+	return BlockTx{
+		SignedTx:  signedTx,
+		TimeStamp: uint64(time.Now().UTC().Unix()),
+		Gas:       gas,
+	}
 }

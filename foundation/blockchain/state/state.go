@@ -147,7 +147,9 @@ func (s *State) SubmitWalletTransaction(signedTx storage.SignedTx) error {
 		return err
 	}
 
-	n, err := s.mempool.Upsert(signedTx)
+	tx := storage.NewBlockTx(signedTx, s.genesis.GasPrice)
+
+	n, err := s.mempool.Upsert(tx)
 	if err != nil {
 		return err
 	}
@@ -236,7 +238,7 @@ func (s *State) MineNewBlock(ctx context.Context) (storage.Block, time.Duration,
 // =============================================================================
 
 // RetrieveMempool returns a copy of the mempool.
-func (s *State) RetrieveMempool() []storage.SignedTx {
+func (s *State) RetrieveMempool() []storage.BlockTx {
 	return s.mempool.Copy()
 }
 
