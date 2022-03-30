@@ -123,6 +123,20 @@ func New(cfg Config) (*State, error) {
 	return &state, nil
 }
 
+// Shutdown cleanly brings the node down.
+func (s *State) Shutdown() error {
+
+	// Make sure the database file is properly closed.
+	defer func() {
+		s.storage.Close()
+	}()
+
+	// Stop all blockchain writing activity.
+	s.worker.shutdown()
+
+	return nil
+}
+
 // =============================================================================
 
 // SubmitWalletTransaction accepts a transaction from a wallet for inclusion.
