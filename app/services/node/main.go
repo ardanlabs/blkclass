@@ -14,6 +14,7 @@ import (
 	"github.com/ardanlabs/blockchain/foundation/blockchain/state"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/storage"
 	"github.com/ardanlabs/blockchain/foundation/logger"
+	"github.com/ardanlabs/blockchain/foundation/nameservice"
 	"github.com/ardanlabs/conf/v3"
 	"github.com/ethereum/go-ethereum/crypto"
 	"go.uber.org/zap"
@@ -101,6 +102,18 @@ func run(log *zap.SugaredLogger) error {
 	log.Infow("startup", "config", out)
 
 	// =========================================================================
+	// Name Service Support
+
+	ns, err := nameservice.New(cfg.NameService.Folder)
+	if err != nil {
+		return fmt.Errorf("unable to load account name service: %w", err)
+	}
+
+	for account, name := range ns.Copy() {
+		log.Infow("startup", "status", "nameservce", "name", name, "account", account)
+	}
+
+	// =========================================================================
 	// Blockchain Support
 
 	path := fmt.Sprintf("%s%s.ecdsa", cfg.NameService.Folder, cfg.Node.MinerName)
@@ -148,6 +161,7 @@ func run(log *zap.SugaredLogger) error {
 		Shutdown: shutdown,
 		Log:      log,
 		State:    state,
+		NS:       ns,
 	})
 
 	// Construct a server to service the requests against the mux.

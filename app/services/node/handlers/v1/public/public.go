@@ -8,6 +8,7 @@ import (
 
 	"github.com/ardanlabs/blockchain/foundation/blockchain/state"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/storage"
+	"github.com/ardanlabs/blockchain/foundation/nameservice"
 	"github.com/ardanlabs/blockchain/foundation/web"
 	"go.uber.org/zap"
 )
@@ -16,6 +17,7 @@ import (
 type Handlers struct {
 	Log   *zap.SugaredLogger
 	State *state.State
+	NS    *nameservice.NameService
 }
 
 // SubmitWalletTransaction adds new user transactions to the mempool.
@@ -64,5 +66,21 @@ func (h Handlers) Genesis(ctx context.Context, w http.ResponseWriter, r *http.Re
 // Accounts returns the current balances for all users.
 func (h Handlers) Accounts(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	blkAccounts := h.State.RetrieveAccounts()
-	return web.Respond(ctx, w, blkAccounts, http.StatusOK)
+
+	acts := make([]info, 0, len(blkAccounts))
+	for account, blkInfo := range blkAccounts {
+		act := info{
+			Account: account,
+			Name:    h.NS.Lookup(account),
+			Balance: blkInfo.Balance,
+		}
+		acts = append(acts, act)
+	}
+
+	ai := actInfo{
+		Uncommitted: len(h.State.RetrieveMempool()),
+		Accounts:    acts,
+	}
+
+	return web.Respond(ctx, w, ai, http.StatusOK)
 }
