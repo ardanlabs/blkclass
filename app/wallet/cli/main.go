@@ -25,13 +25,13 @@ func sendTran() error {
 		return err
 	}
 
-	toAccount, err := storage.ToAccount("0xbEE6ACE826eC3DE1B6349888B9151B92522F7F76")
+	toAccount, err := storage.ToAccount("0x6Fe6CF3c8fF57c58d24BfC869668F48BCbDb3BD9")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	const nonce = 1
-	const value = 200
+	const nonce = 2
+	const value = 300
 	const tip = 15
 	userTx, err := storage.NewUserTx(nonce, toAccount, value, tip, nil)
 	if err != nil {
