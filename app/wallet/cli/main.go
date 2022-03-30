@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,7 +12,14 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
+var to = flag.String("t", "", "to")
+var nonce = flag.Uint("n", 0, "nonce")
+var value = flag.Uint("v", 0, "value")
+var tip = flag.Uint("p", 0, "tip")
+
 func main() {
+	flag.Parse()
+
 	err := sendTran()
 	if err != nil {
 		log.Fatalln(err)
@@ -25,15 +33,12 @@ func sendTran() error {
 		return err
 	}
 
-	toAccount, err := storage.ToAccount("0x6Fe6CF3c8fF57c58d24BfC869668F48BCbDb3BD9")
+	toAccount, err := storage.ToAccount(*to)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	const nonce = 2
-	const value = 300
-	const tip = 15
-	userTx, err := storage.NewUserTx(nonce, toAccount, value, tip, nil)
+	userTx, err := storage.NewUserTx(*nonce, toAccount, *value, *tip, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
