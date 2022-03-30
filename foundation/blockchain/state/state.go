@@ -166,20 +166,20 @@ func (s *State) SubmitWalletTransaction(signedTx storage.SignedTx) error {
 // MineNewBlock attempts to create a new block with a proper hash that can become
 // the next block in the chain.
 func (s *State) MineNewBlock(ctx context.Context) (storage.Block, time.Duration, error) {
-	s.evHandler("worker: runMiningOperation: MINING: check mempool count")
+	s.evHandler("state: MineNewBlock: MINING: check mempool count")
 
 	// Are there enough transactions in the pool.
 	if s.mempool.Count() < s.genesis.TransPerBlock {
 		return storage.Block{}, 0, ErrNotEnoughTransactions
 	}
 
-	s.evHandler("worker: runMiningOperation: MINING: create new block: pick %d", s.genesis.TransPerBlock)
+	s.evHandler("state: MineNewBlock: MINING: create new block: pick %d", s.genesis.TransPerBlock)
 
 	// Create a new block which owns it's own copy of the transactions.
 	trans := s.mempool.PickBest(s.genesis.TransPerBlock)
 	nb := storage.NewBlock(s.minerAccount, s.genesis.Difficulty, s.genesis.TransPerBlock, s.RetrieveLatestBlock(), trans)
 
-	s.evHandler("worker: runMiningOperation: MINING: perform POW")
+	s.evHandler("state: MineNewBlock: MINING: perform POW")
 
 	// Attempt to create a new BlockFS by solving the POW puzzle.
 	// This can be cancelled.
@@ -193,7 +193,7 @@ func (s *State) MineNewBlock(ctx context.Context) (storage.Block, time.Duration,
 		return storage.Block{}, duration, ctx.Err()
 	}
 
-	s.evHandler("worker: runMiningOperation: MINING: update local state")
+	s.evHandler("state: MineNewBlock: MINING: update local state")
 
 	if err := s.updateLocalState(blockFS); err != nil {
 		return storage.Block{}, duration, err
@@ -208,7 +208,7 @@ func (s *State) updateLocalState(blockFS storage.BlockFS) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.evHandler("state: writeBlock: write to disk")
+	s.evHandler("state: updateLocalState: write to disk")
 
 	// Write the new block to the chain on disk.
 	if err := s.storage.Write(blockFS); err != nil {
@@ -216,15 +216,15 @@ func (s *State) updateLocalState(blockFS storage.BlockFS) error {
 	}
 	s.latestBlock = blockFS.Block
 
-	s.evHandler("worker: writeBlock: update accounts and remove from mempool")
+	s.evHandler("state: updateLocalState: update accounts and remove from mempool")
 
 	// Process the transactions and update the accounts.
 	for _, tx := range blockFS.Block.Transactions {
-		s.evHandler("worker: writeBlock: tx[%s] update and remove", tx)
+		s.evHandler("state: updateLocalState: tx[%s] update and remove", tx)
 
 		// Apply the balance changes based on this transaction.
 		if err := s.accounts.ApplyTransaction(blockFS.Block.Header.MinerAccount, tx); err != nil {
-			s.evHandler("worker: writeBlock: WARNING : %s", err)
+			s.evHandler("state: updateLocalState: WARNING : %s", err)
 			continue
 		}
 
@@ -232,7 +232,7 @@ func (s *State) updateLocalState(blockFS storage.BlockFS) error {
 		s.mempool.Delete(tx)
 	}
 
-	s.evHandler("state: writeBlock: apply mining reward")
+	s.evHandler("state: updateLocalState: apply mining reward")
 
 	// Apply the mining reward for this block.
 	s.accounts.ApplyMiningReward(blockFS.Block.Header.MinerAccount)
@@ -283,44 +283,3 @@ func (s *State) validateTransaction(signedTx storage.SignedTx) error {
 
 	return nil
 }
-
-// =============================================================================
-
-// MineNextBlock will perform a block creation.
-// func (s *State) xMineNextBlock() error {
-// 	trans := s.mempool.PickBest(2)
-// 	block := storage.NewBlock(s.minerAccount, s.genesis.Difficulty, s.genesis.TransPerBlock, s.latestBlock, trans)
-
-// 	s.evHandler("worker: MineNextBlock: MINING: find hash")
-
-// 	blockFS, _, err := performPOW(context.Background(), s.genesis.Difficulty, block, s.evHandler)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	s.evHandler("worker: MineNextBlock: MINING: write block to disk")
-
-// 	// Write the new block to the chain on disk.
-// 	if err := s.storage.Write(blockFS); err != nil {
-// 		return err
-// 	}
-
-// 	s.evHandler("worker: MineNextBlock: MINING: remove trans from mempool")
-
-// 	s.accounts.ApplyMiningReward(s.minerAccount)
-
-// 	for _, tx := range trans {
-// 		from, _ := tx.FromAccount()
-
-// 		s.evHandler("worker: MineNextBlock: MINING: UPDATE ACCOUNTS: %s:%d", from, tx.Nonce)
-// 		s.accounts.ApplyTransaction(s.minerAccount, tx)
-
-// 		s.evHandler("worker: MineNextBlock: MINING: REMOVE: %s:%d", from, tx.Nonce)
-// 		s.mempool.Delete(tx)
-// 	}
-
-// 	// Save this as the latest block.
-// 	s.latestBlock = blockFS.Block
-
-// 	return nil
-// }
