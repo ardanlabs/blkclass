@@ -36,6 +36,12 @@ clear-db:
 admin:
 	go run app/wallet/cli/main.go	
 
+load:
+	go run app/wallet/cli/main.go -t "0x6Fe6CF3c8fF57c58d24BfC869668F48BCbDb3BD9" -n 1 -v 100 -p 15
+	go run app/wallet/cli/main.go -t "0xbEE6ACE826eC3DE1B6349888B9151B92522F7F76" -n 2 -v 200 -p 15
+	go run app/wallet/cli/main.go -t "0xa988b1866EaBF72B4c53b592c97aAD8e4b9bDCC0" -n 3 -v 450 -p 15
+	go run app/wallet/cli/main.go -t "0xbEE6ACE826eC3DE1B6349888B9151B92522F7F76" -n 4 -v 230 -p 15
+
 # ==============================================================================
 # Modules support
 
