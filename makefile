@@ -9,9 +9,9 @@ SHELL := /bin/bash
 # Miner1: 0xFef311483Cc040e1A89fb9bb469eeB8A70935EF8
 # Miner2: 0xb8Ee4c7ac4ca3269fEc242780D7D960bd6272a61
 
-# curl -il -X GET http://localhost:8080/v1/genesis
-# curl -il -X GET http://localhost:8080/v1/accounts/list
-# curl -il -X GET http://localhost:8080/v1/tx/uncommitted/list
+# curl -X GET http://localhost:8080/v1/genesis
+# curl -X GET http://localhost:8080/v1/accounts/list | jq .
+# curl -X GET http://localhost:8080/v1/tx/uncommitted/list | jq .
 
 # go run app/wallet/cli/main.go -t "0x6Fe6CF3c8fF57c58d24BfC869668F48BCbDb3BD9" -n 1 -v 100 -p 15
 # go run app/wallet/cli/main.go -t "0xbEE6ACE826eC3DE1B6349888B9151B92522F7F76" -n 2 -v 200 -p 15
