@@ -145,7 +145,41 @@ func (s *State) SubmitWalletTransaction(signedTx storage.SignedTx) error {
 
 // MineNewBlock writes the published transaction from the memory pool to disk.
 func (s *State) MineNewBlock(ctx context.Context) (storage.Block, time.Duration, error) {
-	return storage.Block{}, 0, nil
+	trans := s.mempool.PickBest(2)
+	block := storage.NewBlock(s.minerAccount, s.genesis.Difficulty, s.genesis.TransPerBlock, s.latestBlock, trans)
+
+	s.evHandler("worker: MineNextBlock: MINING: find hash")
+
+	blockFS, _, err := performPOW(ctx, s.genesis.Difficulty, block, s.evHandler)
+	if err != nil {
+		return storage.Block{}, 0, err
+	}
+
+	s.evHandler("worker: MineNextBlock: MINING: write block to disk")
+
+	// Write the new block to the chain on disk.
+	if err := s.storage.Write(blockFS); err != nil {
+		return storage.Block{}, 0, err
+	}
+
+	s.evHandler("worker: MineNextBlock: MINING: remove trans from mempool")
+
+	s.accounts.ApplyMiningReward(s.minerAccount)
+
+	for _, tx := range trans {
+		from, _ := tx.FromAccount()
+
+		s.evHandler("worker: MineNextBlock: MINING: UPDATE ACCOUNTS: %s:%d", from, tx.Nonce)
+		s.accounts.ApplyTransaction(s.minerAccount, tx)
+
+		s.evHandler("worker: MineNextBlock: MINING: REMOVE: %s:%d", from, tx.Nonce)
+		s.mempool.Delete(tx)
+	}
+
+	// Save this as the latest block.
+	s.latestBlock = blockFS.Block
+
+	return blockFS.Block, 0, nil
 }
 
 // =============================================================================
