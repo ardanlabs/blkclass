@@ -1,16 +1,61 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"log"
+	"net/http"
 
+	"github.com/ardanlabs/blockchain/foundation/blockchain/storage"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
 func main() {
-	err := genkey()
+	err := sendTran()
 	if err != nil {
 		log.Fatalln(err)
 	}
+}
+
+func sendTran() error {
+
+	privateKey, err := crypto.LoadECDSA("zblock/accounts/kennedy.ecdsa")
+	if err != nil {
+		return err
+	}
+
+	toAccount, err := storage.ToAccount("0xbEE6ACE826eC3DE1B6349888B9151B92522F7F76")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	const nonce = 1
+	const value = 200
+	const tip = 15
+	userTx, err := storage.NewUserTx(nonce, toAccount, value, tip, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	walletTx, err := userTx.Sign(privateKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	data, err := json.Marshal(walletTx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	url := "http://localhost:8080"
+	resp, err := http.Post(fmt.Sprintf("%s/v1/tx/submit", url), "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	return nil
 }
 
 func genkey() error {
