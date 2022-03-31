@@ -10,6 +10,7 @@ import (
 	v1 "github.com/ardanlabs/blockchain/business/web/v1"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/peer"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/state"
+	"github.com/ardanlabs/blockchain/foundation/blockchain/storage"
 	"github.com/ardanlabs/blockchain/foundation/nameservice"
 	"github.com/ardanlabs/blockchain/foundation/web"
 	"go.uber.org/zap"
@@ -24,8 +25,28 @@ type Handlers struct {
 
 // SubmitNodeTransaction adds new node transactions to the mempool.
 func (h Handlers) SubmitNodeTransaction(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	v, err := web.GetValues(ctx)
+	if err != nil {
+		return web.NewShutdownError("web value missing from context")
+	}
 
-	return nil
+	var tx storage.BlockTx
+	if err := web.Decode(r, &tx); err != nil {
+		return fmt.Errorf("unable to decode payload: %w", err)
+	}
+
+	h.Log.Infow("add user tran", "traceid", v.TraceID, "from:nonce", tx, "to", tx.To, "value", tx.Value, "tip", tx.Tip)
+	if err := h.State.SubmitNodeTransaction(tx); err != nil {
+		return v1.NewRequestError(err, http.StatusBadRequest)
+	}
+
+	resp := struct {
+		Status string `json:"status"`
+	}{
+		Status: "transactions added to mempool",
+	}
+
+	return web.Respond(ctx, w, resp, http.StatusOK)
 }
 
 // AddPeerBlock accepts a new mined block from a peer, validates it, then adds it

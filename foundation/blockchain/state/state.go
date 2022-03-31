@@ -166,6 +166,26 @@ func (s *State) SubmitWalletTransaction(signedTx storage.SignedTx) error {
 		return err
 	}
 
+	s.worker.signalShareTransactions(tx)
+
+	if n >= s.genesis.TransPerBlock {
+		s.worker.signalStartMining()
+	}
+
+	return nil
+}
+
+// SubmitNodeTransaction accepts a transaction from a node for inclusion.
+func (s *State) SubmitNodeTransaction(tx storage.BlockTx) error {
+	if err := s.validateTransaction(tx.SignedTx); err != nil {
+		return err
+	}
+
+	n, err := s.mempool.Upsert(tx)
+	if err != nil {
+		return err
+	}
+
 	if n >= s.genesis.TransPerBlock {
 		s.worker.signalStartMining()
 	}
