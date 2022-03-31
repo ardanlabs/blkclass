@@ -3,6 +3,7 @@ package storage
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"os"
 	"sync"
 )
@@ -82,10 +83,9 @@ func (str *Storage) ReadAllBlocks() ([]Block, error) {
 			return nil, err
 		}
 
-		// CHECK NOTHING BAD HAPPENED.
-		// if blockFS.Block.Hash() != blockFS.Hash {
-		// 	return nil, fmt.Errorf("block %d has been changed", blockNum)
-		// }
+		if blockFS.Block.Hash() != blockFS.Hash {
+			return nil, fmt.Errorf("block %d has been changed", blockNum)
+		}
 
 		blocks = append(blocks, blockFS.Block)
 		blockNum++
