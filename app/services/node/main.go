@@ -189,6 +189,34 @@ func run(log *zap.SugaredLogger) error {
 	}()
 
 	// =========================================================================
+	// Start Private Service
+
+	log.Infow("startup", "status", "initializing V1 private API support")
+
+	// Construct the mux for the private API calls.
+	privateMux := handlers.PrivateMux(handlers.MuxConfig{
+		Shutdown: shutdown,
+		Log:      log,
+		State:    state,
+	})
+
+	// Construct a server to service the requests against the mux.
+	private := http.Server{
+		Addr:         cfg.Web.PrivateHost,
+		Handler:      privateMux,
+		ReadTimeout:  cfg.Web.ReadTimeout,
+		WriteTimeout: cfg.Web.WriteTimeout,
+		IdleTimeout:  cfg.Web.IdleTimeout,
+		ErrorLog:     zap.NewStdLog(log.Desugar()),
+	}
+
+	// Start the service listening for api requests.
+	go func() {
+		log.Infow("startup", "status", "private api router started", "host", private.Addr)
+		serverErrors <- private.ListenAndServe()
+	}()
+
+	// =========================================================================
 	// Shutdown
 
 	// Blocking main and waiting for shutdown.
@@ -203,6 +231,17 @@ func run(log *zap.SugaredLogger) error {
 		// Give outstanding requests a deadline for completion.
 		ctx, cancelPub := context.WithTimeout(context.Background(), cfg.Web.ShutdownTimeout)
 		defer cancelPub()
+
+		// Asking listener to shut down and shed load.
+		log.Infow("shutdown", "status", "shutdown private API started")
+		if err := private.Shutdown(ctx); err != nil {
+			private.Close()
+			return fmt.Errorf("could not stop private service gracefully: %w", err)
+		}
+
+		// Give outstanding requests a deadline for completion.
+		ctx, cancelPri := context.WithTimeout(context.Background(), cfg.Web.ShutdownTimeout)
+		defer cancelPri()
 
 		// Asking listener to shut down and shed load.
 		log.Infow("shutdown", "status", "shutdown public API started")

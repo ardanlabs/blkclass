@@ -5,6 +5,7 @@ package v1
 import (
 	"net/http"
 
+	"github.com/ardanlabs/blockchain/app/services/node/handlers/v1/private"
 	"github.com/ardanlabs/blockchain/app/services/node/handlers/v1/public"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/state"
 	"github.com/ardanlabs/blockchain/foundation/nameservice"
@@ -33,4 +34,19 @@ func PublicRoutes(app *web.App, cfg Config) {
 	app.Handle(http.MethodPost, version, "/tx/submit", pbl.SubmitWalletTransaction)
 	app.Handle(http.MethodGet, version, "/genesis", pbl.Genesis)
 	app.Handle(http.MethodGet, version, "/accounts/list", pbl.Accounts)
+}
+
+// PrivateRoutes binds all the version 1 private routes.
+func PrivateRoutes(app *web.App, cfg Config) {
+	prv := private.Handlers{
+		Log:   cfg.Log,
+		State: cfg.State,
+		NS:    cfg.NS,
+	}
+
+	app.Handle(http.MethodGet, version, "/node/status", prv.Status)
+	app.Handle(http.MethodGet, version, "/node/block/list/:from/:to", prv.BlocksByNumber)
+	app.Handle(http.MethodPost, version, "/node/block/next", prv.AddPeerBlock)
+	app.Handle(http.MethodPost, version, "/node/tx/submit", prv.SubmitNodeTransaction)
+	app.Handle(http.MethodGet, version, "/node/tx/list", prv.Mempool)
 }
