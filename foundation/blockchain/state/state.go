@@ -347,6 +347,23 @@ func (s *State) validateBlock(block storage.Block) (string, error) {
 
 // =============================================================================
 
+// Truncate resets the chain both on disk and in memory. This is used to
+// correct an identified fork.
+func (s *State) Truncate() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// Reset the state of the database.
+	// s.mempool.Truncate()
+	// s.accounts.Reset()
+	// s.latestBlock = storage.Block{}
+	// s.storage.Reset()
+
+	return nil
+}
+
+// =============================================================================
+
 // RetrieveMempool returns a copy of the mempool.
 func (s *State) RetrieveMempool() []storage.BlockTx {
 	return s.mempool.Copy()

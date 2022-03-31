@@ -424,7 +424,7 @@ func (w *worker) runMiningOperation() {
 			wg.Done()
 		}()
 
-		_, duration, err := w.state.MineNewBlock(ctx)
+		block, duration, err := w.state.MineNewBlock(ctx)
 		w.evHandler("worker: runMiningOperation: MINING: mining duration[%v]", duration)
 
 		if err != nil {
@@ -441,10 +441,36 @@ func (w *worker) runMiningOperation() {
 
 		// WOW, we mined a block. Send the new block to the network.
 		// Log the error, but that's it.
+		if err := w.sendBlockToPeers(block); err != nil {
+			w.evHandler("worker: runMiningOperation: MINING: sendBlockToPeers: WARNING %s", err)
+		}
 	}()
 
 	// Wait for both G's to terminate.
 	wg.Wait()
+}
+
+// sendBlockToPeers takes the new mined block and sends it to all know peers.
+func (w *worker) sendBlockToPeers(block storage.Block) error {
+	w.evHandler("worker: runMiningOperation: MINING: sendBlockToPeers: started")
+	defer w.evHandler("worker: runMiningOperation: MINING: sendBlockToPeers: completed")
+
+	for _, peer := range w.state.RetrieveKnownPeers() {
+		url := fmt.Sprintf("%s/block/next", fmt.Sprintf(w.baseURL, peer.Host))
+
+		var status struct {
+			Status string        `json:"status"`
+			Block  storage.Block `json:"block"`
+		}
+
+		if err := send(http.MethodPost, url, block, &status); err != nil {
+			return fmt.Errorf("%s: %s", peer.Host, err)
+		}
+
+		w.evHandler("worker: runMiningOperation: MINING: sendBlockToPeers: sent to peer[%s]", peer)
+	}
+
+	return nil
 }
 
 // =============================================================================

@@ -52,6 +52,36 @@ func (h Handlers) SubmitNodeTransaction(ctx context.Context, w http.ResponseWrit
 // AddPeerBlock accepts a new mined block from a peer, validates it, then adds it
 // to the block chain.
 func (h Handlers) AddPeerBlock(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	var block storage.Block
+	if err := web.Decode(r, &block); err != nil {
+		return fmt.Errorf("unable to decode payload: %w", err)
+	}
+
+	if err := h.State.WritePeerBlock(block); err != nil {
+
+		// More has to be thought about here. I don't think the blockchain
+		// package can perform this activity because it doesn't understand
+		// the application layer. All activity needs to stop after this call
+		// to truncate to re-sync the state of the blockchain.
+		// So the idea for now is to truncate the state here and force a
+		// shutdown/restart of the service.
+		if errors.Is(err, state.ErrChainForked) {
+			h.State.Truncate()
+			return web.NewShutdownError(err.Error())
+		}
+
+		return v1.NewRequestError(err, http.StatusNotAcceptable)
+	}
+
+	resp := struct {
+		Status string        `json:"status"`
+		Block  storage.Block `json:"block"`
+	}{
+		Status: "accepted",
+		Block:  block,
+	}
+
+	return web.Respond(ctx, w, resp, http.StatusOK)
 
 	return nil
 }
