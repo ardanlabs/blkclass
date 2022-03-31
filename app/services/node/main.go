@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/ardanlabs/blockchain/app/services/node/handlers"
+	"github.com/ardanlabs/blockchain/foundation/blockchain/peer"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/state"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/storage"
 	"github.com/ardanlabs/blockchain/foundation/logger"
@@ -124,6 +125,11 @@ func run(log *zap.SugaredLogger) error {
 
 	account := storage.PublicKeyToAccount(privateKey.PublicKey)
 
+	peerSet := peer.NewPeerSet()
+	for _, host := range cfg.Node.KnownPeers {
+		peerSet.Add(peer.New(host))
+	}
+
 	ev := func(v string, args ...interface{}) {
 		s := fmt.Sprintf(v, args...)
 		log.Infow(s, "traceid", "00000000-0000-0000-0000-000000000000")
@@ -133,6 +139,7 @@ func run(log *zap.SugaredLogger) error {
 		MinerAccount: account,
 		Host:         cfg.Web.PrivateHost,
 		DBPath:       cfg.Node.DBPath,
+		KnownPeers:   peerSet,
 		EvHandler:    ev,
 	})
 	if err != nil {

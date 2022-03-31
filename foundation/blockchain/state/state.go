@@ -9,6 +9,7 @@ import (
 	"github.com/ardanlabs/blockchain/foundation/blockchain/accounts"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/genesis"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/mempool"
+	"github.com/ardanlabs/blockchain/foundation/blockchain/peer"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/storage"
 )
 
@@ -26,6 +27,7 @@ type Config struct {
 	MinerAccount storage.Account
 	Host         string
 	DBPath       string
+	KnownPeers   *peer.PeerSet
 	EvHandler    EventHandler
 }
 
@@ -34,6 +36,7 @@ type State struct {
 	minerAccount storage.Account
 	host         string
 	dbPath       string
+	knownPeers   *peer.PeerSet
 
 	evHandler EventHandler
 
@@ -110,6 +113,7 @@ func New(cfg Config) (*State, error) {
 		minerAccount: cfg.MinerAccount,
 		host:         cfg.Host,
 		dbPath:       cfg.DBPath,
+		knownPeers:   cfg.KnownPeers,
 		evHandler:    ev,
 
 		genesis:     genesis,
