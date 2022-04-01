@@ -141,3 +141,8 @@ function connect() {
         showMessage("Unable to connect to node.");
     });
 }
+
+// =============================================================================
+
+function load() {
+}
