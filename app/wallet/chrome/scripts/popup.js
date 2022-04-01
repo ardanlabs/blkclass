@@ -51,24 +51,24 @@ function wireEvents() {
         false
     );
 
-    // const sendsubmit = document.getElementById("sendsubmit");
-    // sendsubmit.addEventListener(
-    //     'click',
-    //     submitTran,
-    //     false
-    // );
+    const sendsubmit = document.getElementById("sendsubmit");
+    sendsubmit.addEventListener(
+        'click',
+        submitTran,
+        false
+    );
 
-    // const sendamount = document.getElementById("sendamount");
-    // sendamount.addEventListener(
-    //     'keyup',
-    //     formatCurrencyKeyup,
-    //     false
-    // );
-    // sendamount.addEventListener(
-    //     'blur',
-    //     formatCurrencyBlur,
-    //     false
-    // );
+    const sendamount = document.getElementById("sendamount");
+    sendamount.addEventListener(
+        'keyup',
+        formatCurrencyKeyup,
+        false
+    );
+    sendamount.addEventListener(
+        'blur',
+        formatCurrencyBlur,
+        false
+    );
 
     const closebuttonconf = document.getElementById("closebuttonconf");
     closebuttonconf.addEventListener(
@@ -91,12 +91,12 @@ function wireEvents() {
         false
     );
 
-    // const confirmyes = document.getElementById("confirmyes");
-    // confirmyes.addEventListener(
-    //     'click',
-    //     createTransaction,
-    //     false
-    // );
+    const confirmyes = document.getElementById("confirmyes");
+    confirmyes.addEventListener(
+        'click',
+        createTransaction,
+        false
+    );
 }
 
 // =============================================================================
@@ -190,19 +190,10 @@ function load() {
     nonce = 0;
     document.getElementById("tranbutton").innerHTML = "Trans";
 
-    $.ajax({
-        type: "get",
-        url: "http://localhost:8080/v1/genesis/list",
-        success: function (response) {
-            fromBalance();
-            // toBalance();
-            // transactions();
-            // mempool();
-        },
-        error: function (jqXHR, exception) {
-            showMessage(exception);
-        },
-    });
+    fromBalance();
+    toBalance();
+    transactions();
+    mempool();
 }
 
 function fromBalance() {
@@ -228,6 +219,202 @@ function fromBalance() {
     });
 }
 
+function toBalance() {
+    $.ajax({
+        type: "get",
+        url: "http://localhost:8080/v1/accounts/list/" + document.getElementById("to").value,
+        success: function (resp) {
+            const bal = document.getElementById("tobal");
+            bal.innerHTML = formatter.format(resp.accounts[0].balance) + " ARD";
+        },
+        error: function (jqXHR, exception) {
+            handleAjaxError(jqXHR, exception);
+        },
+    });
+}
+
+function transactions() {
+    const wallet = new ethers.Wallet(document.getElementById("from").value);
+
+    $.ajax({
+        type: "get",
+        url: "http://localhost:8080/v1/blocks/list/" + wallet.address,
+        success: function (resp) {
+            var msg = "";
+            var count = 0;
+            for (var i = 0; i < resp.length; i++) {
+                for (var j = 0; j < resp[i].txs.length; j++) {
+                    if ((resp[i].txs[j].from == wallet.address) || (resp[i].txs[j].to == wallet.address)) {
+                        msg += JSON.stringify(resp[i].txs[j], null, 2);
+                        count++;
+                    }
+                }
+            }
+            document.getElementById("trans").innerHTML = msg;
+            document.getElementById("tranbutton").innerHTML = "Trans(" + count + ")";
+        },
+        error: function (jqXHR, exception) {
+            handleAjaxError(jqXHR, exception);
+        },
+    });
+}
+
+function mempool() {
+    const wallet = new ethers.Wallet(document.getElementById("from").value);
+
+    $.ajax({
+        type: "get",
+        url: "http://localhost:8080/v1/tx/uncommitted/list/" + wallet.address,
+        success: function (resp) {
+            var msg = "";
+            var count = 0;
+            for (var i = 0; i < resp.length; i++) {
+                msg += JSON.stringify(resp[i], null, 2);
+                count++;
+
+                if (resp[i].from == wallet.address) {
+
+                    // Check the mempool for what the next nonce should be for this account.
+                    const txNonce = Number(resp[i].nonce);
+                    if (txNonce >= nonce) {
+                        nonce = txNonce + 1
+                        document.getElementById("nextnonce").innerHTML = nonce;
+                    }
+
+                    // Update the accounts balance.
+                    const frombal = document.getElementById("frombal");
+                    const txValue = Number(resp[i].value);
+                    var balance = Number(frombal.innerHTML.replace(/\$|,/g, '').replace(" ARD", ""));
+                    balance -= txValue;
+                    frombal.innerHTML = formatter.format(balance) + " ARD";
+                }
+            }
+            document.getElementById("mempool").innerHTML = msg;
+            document.getElementById("mempbutton").innerHTML = "Mem(" + count + ")";
+        },
+        error: function (jqXHR, exception) {
+            handleAjaxError(jqXHR, exception);
+        },
+    });
+}
+
+// =============================================================================
+
+function submitTran() {
+    const conn = document.getElementById("connected");
+    if (conn.innerHTML != "CONNECTED") {
+        showMessage("No connection to node.");
+        return;
+    }
+    
+    // Update the account information.
+    fromBalance();
+
+    // Capture and validate the amount to send.
+    const amountStr = document.getElementById("sendamount").value.replace(/\$|,/g, '');
+    const amount = Number(amountStr);
+    if (isNaN(amount)) {
+        showMessage("Amount is not a number.");
+        return;
+    }
+    if (amount <= 0) {
+        showMessage("Amount must be greater than 0 dollars.");
+        return;
+    }
+
+    // Capture and validate the tip to send.
+    const tipStr = document.getElementById("sendtip").value.replace(/\$|,/g, '');
+    const tip = Number(tipStr);
+    if (isNaN(tip)) {
+        showMessage("Tip is not a number.");
+        return;
+    }
+    if (tip < 0) {
+        showMessage("Tip can't be a negative number.");
+        return;
+    }
+
+    // Validate there is enough money.
+    const frombal = document.getElementById("frombal");
+    var balance = Number(frombal.innerHTML.replace(/\$|,/g, '').replace(" ARD", ""));
+    if (amount > balance) {
+        showMessage("You don't have enough money.");
+        return;
+    }
+
+    showConfirmation();
+}
+
+function createTransaction() {
+
+    // We got a yes confirmation so we know the values are verified.
+    const amountStr = document.getElementById("sendamount").value.replace(/\$|,/g, '');
+    const tipStr = document.getElementById("sendtip").value.replace(/\$|,/g, '');
+
+     // Construct a userTx with all the information.
+     const userTx = {
+        nonce: nonce,
+        to: document.getElementById("to").value,
+        value: Number(amountStr),
+        tip: Number(tipStr),
+        data: null,
+    };
+
+    // Marshal the userTx to a string and convert the string to bytes.
+    const marshal = JSON.stringify(userTx);
+    const marshalBytes = ethers.utils.toUtf8Bytes(marshal);
+
+    // Hash the transaction data into a 32 byte array. This will provide
+	// a data length consistency with all transactions.
+    const txHash = ethers.utils.keccak256(marshalBytes);
+    const bytes = ethers.utils.arrayify(txHash);
+
+    // Now sign the data. The underlying code will apply the Ardan stamp and
+    // ID to the signature thanks to changes made to the ether.js api.
+    const wallet = new ethers.Wallet(document.getElementById("from").value);
+    signature = wallet.signMessage(bytes);
+
+    // Since everything is built on promises, wait for the signature to
+    // be calculated and then send the transaction to the node.
+    signature.then((sig) => sendTran(userTx, sig));
+}
+
+function sendTran(userTx, sig) {
+
+    // Need to break out the R and S bytes from the signature.
+    const byt = ethers.utils.arrayify(sig);
+    const rSlice = byt.slice(0, 32);
+    const sSlice = byt.slice(32, 64);
+
+    // Add the signature fields to make this a signed transaction.
+    userTx.v = byt[64];
+    userTx.r = ethers.BigNumber.from(rSlice).toString();
+    userTx.s = ethers.BigNumber.from(sSlice).toString();
+    
+    // Marshal into JSON for the payload.
+    var data = JSON.stringify(userTx);
+
+    // Go doesn't want big integers to be strings. Removing quotes.
+    data = data.replace('r":"', 'r":');
+    data = data.replace('","s":"', ',"s":');
+    data = data.replace('"}', '}');
+
+    closeModal();
+
+    $.ajax({
+        type: "post",
+        url: "http://localhost:8080/v1/tx/submit",
+        data: data,
+        success: function (resp) {
+            document.getElementById("nextnonce").innerHTML = nonce;
+            load();
+            showMessage(resp.status);
+        },
+        error: function (jqXHR, exception) {
+            handleAjaxError(jqXHR, exception);
+        },
+    });
+}
 
 // =============================================================================
 

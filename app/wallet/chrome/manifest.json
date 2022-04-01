@@ -1,6 +1,6 @@
-{
-    "name": "Class Wallet",
-    "description": "This wallet allows you to interact with the Class blockchain.",
+ {
+    "name": "Ardan Wallet",
+    "description": "This wallet allows you to interact with the Ardan blockchain.",
     "version": "0.1.0",
     "manifest_version": 3,
     "icons": {

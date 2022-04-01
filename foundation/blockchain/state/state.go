@@ -234,18 +234,6 @@ func (s *State) MineNewBlock(ctx context.Context) (storage.Block, time.Duration,
 	return blockFS.Block, duration, nil
 }
 
-// QueryAccounts returns a copy of the account information by account.
-func (s *State) QueryAccounts(account storage.Account) map[storage.Account]accounts.Info {
-	cpy := s.accounts.Copy()
-
-	final := make(map[storage.Account]accounts.Info)
-	if info, exists := cpy[account]; exists {
-		final[account] = info
-	}
-
-	return final
-}
-
 // MinePeerBlock takes a block received from a peer, validates it and
 // if that passes, writes the block to disk.
 func (s *State) MinePeerBlock(block storage.Block) error {
@@ -431,6 +419,45 @@ func (s *State) QueryBlocksByNumber(from uint64, to uint64) []storage.Block {
 	for _, block := range blocks {
 		if block.Header.Number >= from && block.Header.Number <= to {
 			out = append(out, block)
+		}
+	}
+
+	return out
+}
+
+// QueryAccounts returns a copy of the account information by account.
+func (s *State) QueryAccounts(account storage.Account) map[storage.Account]accounts.Info {
+	cpy := s.accounts.Copy()
+
+	final := make(map[storage.Account]accounts.Info)
+	if info, exists := cpy[account]; exists {
+		final[account] = info
+	}
+
+	return final
+}
+
+// QueryBlocksByAccount returns the set of blocks by account. If the account
+// is empty, all blocks are returned. This function reads the blockchain
+// from disk first.
+func (s *State) QueryBlocksByAccount(account storage.Account) []storage.Block {
+	blocks, err := s.storage.ReadAllBlocks()
+	if err != nil {
+		return nil
+	}
+
+	var out []storage.Block
+blocks:
+	for _, block := range blocks {
+		for _, tx := range block.Transactions {
+			from, err := tx.FromAccount()
+			if err != nil {
+				continue
+			}
+			if account == "" || from == account || tx.To == account {
+				out = append(out, block)
+				continue blocks
+			}
 		}
 	}
 
