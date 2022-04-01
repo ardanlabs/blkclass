@@ -9,94 +9,94 @@ window.onload = function () {
 // =============================================================================
 
 function wireEvents() {
-    const refresh = document.getElementById("refreshsubmit");
-    refresh.addEventListener(
-        'click',
-        load,
-        false
-    );
+    // const refresh = document.getElementById("refreshsubmit");
+    // refresh.addEventListener(
+    //     'click',
+    //     load,
+    //     false
+    // );
 
-    const from = document.getElementById("from");
-    from.addEventListener(
-        'change',
-        load,
-        false
-    );
+    // const from = document.getElementById("from");
+    // from.addEventListener(
+    //     'change',
+    //     load,
+    //     false
+    // );
 
-    const to = document.getElementById("to");
-    to.addEventListener(
-        'change',
-        load,
-        false
-    );
+    // const to = document.getElementById("to");
+    // to.addEventListener(
+    //     'change',
+    //     load,
+    //     false
+    // );
 
-    const send = document.getElementById("sendbutton");
-    send.addEventListener(
-        'click',
-        showInfoTabSend,
-        false
-    );
+    // const send = document.getElementById("sendbutton");
+    // send.addEventListener(
+    //     'click',
+    //     showInfoTabSend,
+    //     false
+    // );
 
-    const tran = document.getElementById("tranbutton");
-    tran.addEventListener(
-        'click',
-        showInfoTabTran,
-        false
-    );
+    // const tran = document.getElementById("tranbutton");
+    // tran.addEventListener(
+    //     'click',
+    //     showInfoTabTran,
+    //     false
+    // );
 
-    const memp = document.getElementById("mempbutton");
-    memp.addEventListener(
-        'click',
-        showInfoTabMemp,
-        false
-    );
+    // const memp = document.getElementById("mempbutton");
+    // memp.addEventListener(
+    //     'click',
+    //     showInfoTabMemp,
+    //     false
+    // );
 
-    const sendsubmit = document.getElementById("sendsubmit");
-    sendsubmit.addEventListener(
-        'click',
-        submitTran,
-        false
-    );
+    // const sendsubmit = document.getElementById("sendsubmit");
+    // sendsubmit.addEventListener(
+    //     'click',
+    //     submitTran,
+    //     false
+    // );
 
-    const sendamount = document.getElementById("sendamount");
-    sendamount.addEventListener(
-        'keyup',
-        formatCurrencyKeyup,
-        false
-    );
-    sendamount.addEventListener(
-        'blur',
-        formatCurrencyBlur,
-        false
-    );
+    // const sendamount = document.getElementById("sendamount");
+    // sendamount.addEventListener(
+    //     'keyup',
+    //     formatCurrencyKeyup,
+    //     false
+    // );
+    // sendamount.addEventListener(
+    //     'blur',
+    //     formatCurrencyBlur,
+    //     false
+    // );
 
-    const closebuttonconf = document.getElementById("closebuttonconf");
-    closebuttonconf.addEventListener(
-        'click',
-        closeModal,
-        false
-    );
+    // const closebuttonconf = document.getElementById("closebuttonconf");
+    // closebuttonconf.addEventListener(
+    //     'click',
+    //     closeModal,
+    //     false
+    // );
 
-    const closebuttonmsg = document.getElementById("closebuttonmsg");
-    closebuttonmsg.addEventListener(
-        'click',
-        closeModal,
-        false
-    );
+    // const closebuttonmsg = document.getElementById("closebuttonmsg");
+    // closebuttonmsg.addEventListener(
+    //     'click',
+    //     closeModal,
+    //     false
+    // );
 
-    const confirmno = document.getElementById("confirmno");
-    confirmno.addEventListener(
-        'click',
-        closeModal,
-        false
-    );
+    // const confirmno = document.getElementById("confirmno");
+    // confirmno.addEventListener(
+    //     'click',
+    //     closeModal,
+    //     false
+    // );
 
-    const confirmyes = document.getElementById("confirmyes");
-    confirmyes.addEventListener(
-        'click',
-        createTransaction,
-        false
-    );
+    // const confirmyes = document.getElementById("confirmyes");
+    // confirmyes.addEventListener(
+    //     'click',
+    //     createTransaction,
+    //     false
+    // );
 }
 
 // =============================================================================
@@ -108,7 +108,7 @@ function connect() {
         const conn = document.getElementById("connected");
         conn.className = "connected";
         conn.innerHTML = "CONNECTED";
-        load();
+        // load();
     });
 
     socket.addEventListener('close', function (event) {
@@ -123,7 +123,7 @@ function connect() {
         if (event.data.includes("MINING: completed")) {
             conn.className = "connected";
             conn.innerHTML = "CONNECTED";
-            load();
+            // load();
             return;
         }
 
@@ -138,11 +138,9 @@ function connect() {
         const conn = document.getElementById("connected");
         conn.className = "notconnected";
         conn.innerHTML = "NOT CONNECTED";
-        showMessage("Unable to connect to node.");
+        // showMessage("Unable to connect to node.");
     });
 }
 
 // =============================================================================
 
-function load() {
-}
