@@ -234,6 +234,18 @@ func (s *State) MineNewBlock(ctx context.Context) (storage.Block, time.Duration,
 	return blockFS.Block, duration, nil
 }
 
+// QueryAccounts returns a copy of the account information by account.
+func (s *State) QueryAccounts(account storage.Account) map[storage.Account]accounts.Info {
+	cpy := s.accounts.Copy()
+
+	final := make(map[storage.Account]accounts.Info)
+	if info, exists := cpy[account]; exists {
+		final[account] = info
+	}
+
+	return final
+}
+
 // MinePeerBlock takes a block received from a peer, validates it and
 // if that passes, writes the block to disk.
 func (s *State) MinePeerBlock(block storage.Block) error {

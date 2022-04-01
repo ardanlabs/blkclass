@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ardanlabs/blockchain/foundation/blockchain/accounts"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/state"
 	"github.com/ardanlabs/blockchain/foundation/blockchain/storage"
 	"github.com/ardanlabs/blockchain/foundation/nameservice"
@@ -90,7 +91,20 @@ func (h Handlers) Genesis(ctx context.Context, w http.ResponseWriter, r *http.Re
 
 // Accounts returns the current balances for all users.
 func (h Handlers) Accounts(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	blkAccounts := h.State.RetrieveAccounts()
+	account := web.Param(r, "account")
+
+	var blkAccounts map[storage.Account]accounts.Info
+	switch account {
+	case "":
+		blkAccounts = h.State.RetrieveAccounts()
+
+	default:
+		account, err := storage.ToAccount(account)
+		if err != nil {
+			return err
+		}
+		blkAccounts = h.State.QueryAccounts(account)
+	}
 
 	acts := make([]info, 0, len(blkAccounts))
 	for account, blkInfo := range blkAccounts {
@@ -98,13 +112,15 @@ func (h Handlers) Accounts(ctx context.Context, w http.ResponseWriter, r *http.R
 			Account: account,
 			Name:    h.NS.Lookup(account),
 			Balance: blkInfo.Balance,
+			Nonce:   1,
 		}
 		acts = append(acts, act)
 	}
 
 	ai := actInfo{
-		Uncommitted: len(h.State.RetrieveMempool()),
-		Accounts:    acts,
+		LastestBlock: h.State.RetrieveLatestBlock().Hash(),
+		Uncommitted:  len(h.State.RetrieveMempool()),
+		Accounts:     acts,
 	}
 
 	return web.Respond(ctx, w, ai, http.StatusOK)

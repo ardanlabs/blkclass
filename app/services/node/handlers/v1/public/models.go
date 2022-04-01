@@ -6,9 +6,11 @@ type info struct {
 	Account storage.Account `json:"account"`
 	Name    string          `json:"name"`
 	Balance uint            `json:"balance"`
+	Nonce   uint            `json:"nonce"`
 }
 
 type actInfo struct {
-	Uncommitted int    `json:"uncommitted"`
-	Accounts    []info `json:"accounts"`
+	LastestBlock string `json:"lastest_block"`
+	Uncommitted  int    `json:"uncommitted"`
+	Accounts     []info `json:"accounts"`
 }
